@@ -47,9 +47,10 @@ public final class FormRowDescriptor {
         public var placeholder:              String?
         public var showsInputToolbar:        Bool
         public var required:                 Bool
-        public var willUpdateClosure:        ((FormRowDescriptor) -> Void)?
+        public var willUpdateClosure:        ((FormRowDescriptor, AnyObject?, inout AnyObject?) -> Void)?
         public var didUpdateClosure:         ((FormRowDescriptor) -> Void)?
         public var visualConstraintsClosure: ((FormBaseCell) -> [String])?
+        public var inputToolbarDoneClosure:  ((FormBaseCell) -> Void)?
         
         public init() {
             cellClass = nil
@@ -60,6 +61,7 @@ public final class FormRowDescriptor {
             willUpdateClosure = nil
             didUpdateClosure = nil
             visualConstraintsClosure = nil
+            inputToolbarDoneClosure = nil
         }
     }
  
@@ -128,14 +130,24 @@ public final class FormRowDescriptor {
     
     public var title: String?
     
+    private var _value: AnyObject?
     public var value: AnyObject? {
-        willSet {
-            guard let willUpdateBlock = configuration.cell.willUpdateClosure else { return }
-            willUpdateBlock(self)
+        set {
+            if newValue !== _value {
+                var newV = newValue
+                if let willUpdateBlock = configuration.cell.willUpdateClosure {
+                    willUpdateBlock(self, _value, &newV)
+                }
+                
+                _value = newV
+                
+                if let didUpdateBlock = configuration.cell.didUpdateClosure {
+                    didUpdateBlock(self)
+                }
+            }
         }
-        didSet {
-            guard let didUpdateBlock = configuration.cell.didUpdateClosure else { return }
-            didUpdateBlock(self)
+        get {
+            return _value
         }
     }
     

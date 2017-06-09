@@ -73,6 +73,9 @@ open class FormBaseCell: UITableViewCell {
     }
     
     internal func handleDoneAction(_: UIBarButtonItem) {
+        if let inputToolbarDoneClosure = rowDescriptor?.configuration.cell.inputToolbarDoneClosure {
+            inputToolbarDoneClosure(self)
+        }
         firstResponderElement()?.resignFirstResponder()
     }
     
